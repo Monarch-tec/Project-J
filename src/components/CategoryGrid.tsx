@@ -22,7 +22,8 @@ import {
   Square,
   HelpCircle,
   Terminal,
-  FileCode2
+  FileCode2,
+  FileText
 } from 'lucide-react';
 import { CHAPTERS } from '../data/chapters';
 import { ALL_QUESTIONS } from '../data/questions';
@@ -34,6 +35,7 @@ interface CategoryGridProps {
   onSelectType?: (type: QuestionType) => void;
   onOpenQuizBuilder: () => void;
   onStartMarathon: () => void;
+  onOpenStudyNotes?: () => void;
   progress: QuizProgress;
 }
 
@@ -89,6 +91,7 @@ export const CategoryGrid: React.FC<CategoryGridProps> = ({
   onSelectType,
   onOpenQuizBuilder,
   onStartMarathon,
+  onOpenStudyNotes,
   progress
 }) => {
   const totalAnswered = Object.keys(progress.answeredQuestions).length;
@@ -133,6 +136,17 @@ export const CategoryGrid: React.FC<CategoryGridProps> = ({
               <Play className="w-4 h-4 fill-indigo-700" />
               <span>Practice All Questions ({ALL_QUESTIONS.length})</span>
             </button>
+
+            {onOpenStudyNotes && (
+              <button
+                id="btn-open-study-notes"
+                onClick={onOpenStudyNotes}
+                className="flex items-center space-x-2 px-6 py-4 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-black text-sm transition-all shadow-sm"
+              >
+                <FileText className="w-4 h-4 text-amber-300" />
+                <span>Full Topic Study Notes</span>
+              </button>
+            )}
           </div>
         </div>
       </div>

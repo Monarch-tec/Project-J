@@ -17,6 +17,7 @@ import { ExamMode } from './components/ExamMode';
 import { BookmarksReview } from './components/BookmarksReview';
 import { OfflineIndicator } from './components/OfflineIndicator';
 import { DataManagementModal } from './components/DataManagementModal';
+import { StudyNotesView } from './components/StudyNotesView';
 import { 
   ChevronLeft, 
   Sparkles, 
@@ -410,6 +411,7 @@ export const App: React.FC = () => {
             onSelectType={handleSelectQuestionType}
             onOpenQuizBuilder={() => setMode('builder')}
             onStartMarathon={handleStartMarathon}
+            onOpenStudyNotes={() => setMode('study-notes')}
             progress={progress}
           />
         )}
@@ -585,6 +587,19 @@ export const App: React.FC = () => {
                   return { ...prev, answeredQuestions: newAnswered };
                 });
               }
+            }}
+          />
+        )}
+
+        {/* MODE 6: Comprehensive Study Notes & Topic Syllabus Guides */}
+        {mode === 'study-notes' && (
+          <StudyNotesView
+            onStartChapterQuiz={(chapterId) => {
+              setActiveChapter(chapterId);
+              setCustomQuestionsList(null);
+              setCustomConfig(null);
+              setActiveQuestionIndex(0);
+              setMode('quiz');
             }}
           />
         )}

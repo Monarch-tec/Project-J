@@ -87,7 +87,7 @@ export interface QuizProgress {
   lastPlayedTimestamp: number;
 }
 
-export type AppMode = 'builder' | 'categories' | 'chapters' | 'quiz' | 'exam' | 'explorer' | 'review';
+export type AppMode = 'builder' | 'categories' | 'chapters' | 'quiz' | 'exam' | 'explorer' | 'review' | 'study-notes';
 
 export interface CustomQuizConfig {
   selectedChapters: ChapterId[];

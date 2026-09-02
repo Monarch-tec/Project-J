@@ -9,7 +9,8 @@ import {
   Award,
   SlidersHorizontal,
   FolderDown,
-  FileDown
+  FileDown,
+  GraduationCap
 } from 'lucide-react';
 import { AppMode, QuizProgress, UserAnswerState } from '../types';
 import { PWAInstallButton } from './PWAInstallButton';
@@ -129,6 +130,19 @@ export const Navbar: React.FC<NavbarProps> = ({
             </button>
 
             <button
+              id="nav-study-notes"
+              onClick={() => setMode('study-notes')}
+              className={`flex items-center space-x-2 px-3.5 py-2 rounded-xl transition-all ${
+                currentMode === 'study-notes'
+                  ? 'bg-amber-400 text-amber-950 font-black shadow-[0px_3px_0px_0px_#b45309]'
+                  : 'text-indigo-200 hover:text-white hover:bg-indigo-700/60'
+              }`}
+            >
+              <GraduationCap className="w-4 h-4" />
+              <span>Study Notes</span>
+            </button>
+
+            <button
               id="nav-review"
               onClick={() => setMode('review')}
               className={`flex items-center space-x-2 px-3.5 py-2 rounded-xl transition-all ${
@@ -225,6 +239,12 @@ export const Navbar: React.FC<NavbarProps> = ({
             className={`px-3 py-1.5 rounded-xl whitespace-nowrap ${currentMode === 'explorer' ? 'bg-amber-400 text-amber-950 font-black shadow-sm' : 'text-indigo-200 bg-indigo-800'}`}
           >
             Bank Explorer
+          </button>
+          <button
+            onClick={() => setMode('study-notes')}
+            className={`px-3 py-1.5 rounded-xl whitespace-nowrap ${currentMode === 'study-notes' ? 'bg-amber-400 text-amber-950 font-black shadow-sm' : 'text-indigo-200 bg-indigo-800'}`}
+          >
+            Study Notes
           </button>
           <button
             onClick={() => setMode('review')}
