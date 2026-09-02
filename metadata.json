@@ -1,0 +1,6 @@
+{
+  "name": "Advanced Java Master Quiz",
+  "description": "Comprehensive 400-question master quiz platform covering advanced Java concepts, JVM internals, concurrency, memory model, and modern features with instant feedback and in-depth explanations.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
