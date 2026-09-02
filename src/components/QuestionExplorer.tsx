@@ -9,11 +9,14 @@ import {
   ChevronUp,
   ArrowRight,
   Sparkles,
-  SlidersHorizontal
+  SlidersHorizontal,
+  Download,
+  FileText
 } from 'lucide-react';
 import { ALL_QUESTIONS } from '../data/questions';
 import { CHAPTERS } from '../data/chapters';
 import { Question, QuizProgress, ChapterId, QuestionType } from '../types';
+import { exportQuizToPdf } from '../utils/pdfExport';
 
 interface QuestionExplorerProps {
   progress: QuizProgress;
@@ -85,7 +88,25 @@ export const QuestionExplorer: React.FC<QuestionExplorerProps> = ({
             Search, filter by chapter & question format, and study in-depth code analyses
           </p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2.5">
+          <button
+            onClick={() => {
+              exportQuizToPdf({
+                title: 'Question Bank Explorer Selection',
+                subtitle: `${filteredQuestions.length} Questions matching active filters`,
+                questions: filteredQuestions,
+                includeAnswers: true,
+                includeExplanations: true
+              });
+            }}
+            disabled={filteredQuestions.length === 0}
+            className="text-xs font-bold text-indigo-950 bg-indigo-100 hover:bg-white px-3.5 py-2.5 rounded-2xl shadow-sm transition-all flex items-center space-x-1.5 disabled:opacity-50"
+            title="Download filtered questions as PDF"
+          >
+            <Download className="w-3.5 h-3.5 text-indigo-700" />
+            <span>Export Filtered PDF ({filteredQuestions.length})</span>
+          </button>
+
           {onOpenQuizBuilder && (
             <button
               onClick={onOpenQuizBuilder}
@@ -97,7 +118,7 @@ export const QuestionExplorer: React.FC<QuestionExplorerProps> = ({
           )}
           <div className="text-xs font-black text-slate-900 bg-white px-4 py-2.5 rounded-2xl shadow-sm flex items-center space-x-2">
             <span className="font-extrabold text-indigo-600">{filteredQuestions.length}</span>
-            <span>questions matching</span>
+            <span>questions</span>
           </div>
         </div>
       </div>

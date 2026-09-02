@@ -16,6 +16,7 @@ import { QuestionExplorer } from './components/QuestionExplorer';
 import { ExamMode } from './components/ExamMode';
 import { BookmarksReview } from './components/BookmarksReview';
 import { OfflineIndicator } from './components/OfflineIndicator';
+import { DataManagementModal } from './components/DataManagementModal';
 import { 
   ChevronLeft, 
   Sparkles, 
@@ -41,6 +42,7 @@ export const App: React.FC = () => {
   const [activeQuestionIndex, setActiveQuestionIndex] = useState<number>(0);
   const [customQuestionsList, setCustomQuestionsList] = useState<Question[] | null>(null);
   const [customConfig, setCustomConfig] = useState<CustomQuizConfig | null>(null);
+  const [isDataModalOpen, setIsDataModalOpen] = useState<boolean>(false);
   
   // Persistent Progress state
   const [progress, setProgress] = useState<QuizProgress>(() => {
@@ -395,6 +397,7 @@ export const App: React.FC = () => {
         totalQuestions={ALL_QUESTIONS.length}
         onResetProgress={handleResetProgress}
         bookmarkedCount={progress.bookmarkedQuestions.length}
+        onOpenDataManagement={() => setIsDataModalOpen(true)}
       />
 
       {/* Main Content Area */}
@@ -598,6 +601,22 @@ export const App: React.FC = () => {
 
       {/* Offline Status Toast */}
       <OfflineIndicator />
+
+      {/* Data Management, Import/Export & PDF Modal */}
+      <DataManagementModal
+        isOpen={isDataModalOpen}
+        onClose={() => setIsDataModalOpen(false)}
+        progress={progress}
+        onImportProgress={(imported) => {
+          setProgress(imported);
+        }}
+        onImportCustomQuestions={(customQs) => {
+          setCustomQuestionsList(customQs);
+          setActiveChapter('custom');
+          setActiveQuestionIndex(0);
+          setMode('quiz');
+        }}
+      />
     </div>
   );
 };

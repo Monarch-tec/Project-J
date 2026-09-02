@@ -27,6 +27,7 @@ import {
 import { CHAPTERS } from '../data/chapters';
 import { ALL_QUESTIONS } from '../data/questions';
 import { QuizProgress, UserAnswerState, ChapterId, QuestionType } from '../types';
+import { ChapterPerformanceChart } from './ChapterPerformanceChart';
 
 interface CategoryGridProps {
   onSelectChapter: (chapterId: ChapterId) => void;
@@ -135,6 +136,9 @@ export const CategoryGrid: React.FC<CategoryGridProps> = ({
           </div>
         </div>
       </div>
+
+      {/* Chapter Performance Recharts Visualizer */}
+      <ChapterPerformanceChart progress={progress} />
 
       {/* 4 QUESTION TYPES SECTION */}
       <section id="section-practice-by-type" className="space-y-4">

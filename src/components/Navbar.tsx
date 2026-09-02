@@ -7,7 +7,9 @@ import {
   Layers, 
   Search, 
   Award,
-  SlidersHorizontal
+  SlidersHorizontal,
+  FolderDown,
+  FileDown
 } from 'lucide-react';
 import { AppMode, QuizProgress, UserAnswerState } from '../types';
 import { PWAInstallButton } from './PWAInstallButton';
@@ -19,6 +21,7 @@ interface NavbarProps {
   totalQuestions: number;
   onResetProgress: () => void;
   bookmarkedCount: number;
+  onOpenDataManagement?: () => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -27,7 +30,8 @@ export const Navbar: React.FC<NavbarProps> = ({
   progress,
   totalQuestions,
   onResetProgress,
-  bookmarkedCount
+  bookmarkedCount,
+  onOpenDataManagement
 }) => {
   const answeredCount = Object.keys(progress.answeredQuestions).length;
   const correctCount = (Object.values(progress.answeredQuestions) as UserAnswerState[]).filter(a => a.isCorrect).length;
@@ -154,6 +158,19 @@ export const Navbar: React.FC<NavbarProps> = ({
               <span className="text-[10px] uppercase font-black text-amber-900 tracking-wider">Accuracy</span>
               <span className="text-base font-black text-amber-950">{accuracy}%</span>
             </div>
+
+            {/* PDF & Data Management Button */}
+            {onOpenDataManagement && (
+              <button
+                id="btn-open-data-modal"
+                onClick={onOpenDataManagement}
+                title="PDF Export, Import & Backups"
+                className="flex items-center space-x-1 px-3 py-2 rounded-xl bg-indigo-800/90 hover:bg-indigo-600 text-indigo-100 hover:text-white transition-colors border border-indigo-600/80 text-xs font-bold"
+              >
+                <FileDown className="w-4 h-4 text-amber-300" />
+                <span className="hidden xl:inline">PDF & Data</span>
+              </button>
+            )}
 
             {/* Streak */}
             <div 

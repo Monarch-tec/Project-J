@@ -16,10 +16,15 @@ import {
   CheckSquare,
   Square,
   Sparkles,
-  AlertCircle
+  AlertCircle,
+  Volume2,
+  VolumeX,
+  Play,
+  Square as StopSquare
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { Question, UserAnswerState } from '../types';
+import { useSpeech } from '../hooks/useSpeech';
 
 interface QuizCardProps {
   question: Question;
@@ -63,6 +68,29 @@ export const QuizCard: React.FC<QuizCardProps> = ({
   const selectedIndex = userAnswer?.selectedOption;
   const selectedIndices = userAnswer?.selectedOptions || [];
   const isCorrect = userAnswer?.isCorrect;
+
+  const { isSupported: speechSupported, isSpeaking, speak, stop: stopSpeaking } = useSpeech();
+
+  // Stop speech when changing question
+  useEffect(() => {
+    stopSpeaking();
+  }, [question.id]);
+
+  const handleToggleSpeech = () => {
+    if (isSpeaking) {
+      stopSpeaking();
+    } else {
+      let speechText = `Question ${questionNumber}. ${question.question}. `;
+      if (question.type === 'multiple-choice' || question.type === 'multiple-selection') {
+        const letters = ['A', 'B', 'C', 'D'];
+        speechText += 'Options are: ' + question.options.map((opt, i) => `Option ${letters[i]}: ${opt}`).join('. ') + '. ';
+      }
+      if (isAnswered && question.explanation) {
+        speechText += `Explanation: ${question.explanation}`;
+      }
+      speak(speechText);
+    }
+  };
 
   // Reset local interactive inputs when question changes
   useEffect(() => {
@@ -183,6 +211,32 @@ export const QuizCard: React.FC<QuizCardProps> = ({
           <span className="text-xs font-bold text-indigo-700 bg-indigo-50 px-3.5 py-1.5 rounded-full border border-indigo-100">
             {question.chapterTitle}
           </span>
+
+          {/* Voice Read Out Button */}
+          {speechSupported && (
+            <button
+              id={`btn-voice-readout-${question.id}`}
+              onClick={handleToggleSpeech}
+              title={isSpeaking ? "Stop Voice Readout" : "Voice Read Out Question & Options"}
+              className={`p-2 rounded-2xl border transition-all flex items-center space-x-1.5 ${
+                isSpeaking 
+                  ? 'bg-rose-500 text-white border-rose-500 shadow-md animate-pulse' 
+                  : 'bg-indigo-50 text-indigo-700 hover:bg-indigo-100 hover:text-indigo-900 border-indigo-200 shadow-sm'
+              }`}
+            >
+              {isSpeaking ? (
+                <>
+                  <VolumeX className="w-4 h-4" />
+                  <span className="text-[11px] font-black uppercase">Stop</span>
+                </>
+              ) : (
+                <>
+                  <Volume2 className="w-4 h-4" />
+                  <span className="text-[11px] font-black uppercase">Read Out</span>
+                </>
+              )}
+            </button>
+          )}
 
           {/* Bookmark Button */}
           <button
