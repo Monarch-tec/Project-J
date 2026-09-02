@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#4f46e5" />
+      <stop offset="50%" stop-color="#4338ca" />
+      <stop offset="100%" stop-color="#312e81" />
+    </linearGradient>
+    <linearGradient id="cup" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fbbf24" />
+      <stop offset="100%" stop-color="#f59e0b" />
+    </linearGradient>
+  </defs>
+  <!-- Background with rounded edges -->
+  <rect width="512" height="512" rx="112" fill="url(#bg)" />
+  
+  <!-- Outer Glow Ring -->
+  <circle cx="256" cy="256" r="190" fill="none" stroke="#6366f1" stroke-width="8" opacity="0.4" />
+  
+  <!-- Java Coffee Cup / Modern Code Core -->
+  <path d="M140 200h200v90c0 44.183-35.817 80-80 80h-40c-44.183 0-80-35.817-80-80v-90z" fill="url(#cup)" />
+  <!-- Cup Handle -->
+  <path d="M340 220h25c22.091 0 40 17.909 40 40s-17.909 40-40 40h-25v-80z" fill="none" stroke="#fbbf24" stroke-width="24" stroke-linecap="round" />
+  <!-- Saucer -->
+  <path d="M110 390h260" stroke="#fef3c7" stroke-width="20" stroke-linecap="round" />
+  
+  <!-- Steam Curves (Java Vapor Lines) -->
+  <path d="M200 160c-15-20 15-35 0-55" fill="none" stroke="#fef3c7" stroke-width="16" stroke-linecap="round" />
+  <path d="M256 160c-15-20 15-35 0-55" fill="none" stroke="#fde68a" stroke-width="16" stroke-linecap="round" />
+  <path d="M312 160c-15-20 15-35 0-55" fill="none" stroke="#fef3c7" stroke-width="16" stroke-linecap="round" />
+
+  <!-- Code brackets in front -->
+  <text x="240" y="275" font-family="system-ui, -apple-system, sans-serif" font-weight="900" font-size="52" fill="#78350f" text-anchor="middle">&lt; / &gt;</text>
+</svg>

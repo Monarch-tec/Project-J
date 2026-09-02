@@ -10,6 +10,7 @@ import {
   SlidersHorizontal
 } from 'lucide-react';
 import { AppMode, QuizProgress, UserAnswerState } from '../types';
+import { PWAInstallButton } from './PWAInstallButton';
 
 interface NavbarProps {
   currentMode: AppMode;
@@ -138,7 +139,10 @@ export const Navbar: React.FC<NavbarProps> = ({
           </nav>
 
           {/* Right Stats & Badges */}
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center space-x-2 sm:space-x-3">
+            {/* In-App PWA Install */}
+            <PWAInstallButton />
+
             {/* Score pill */}
             <div className="hidden lg:flex flex-col items-center bg-indigo-800 border border-indigo-600/80 rounded-2xl px-3.5 py-1.5 min-w-[85px] shadow-sm">
               <span className="text-[10px] uppercase font-black text-indigo-300 tracking-wider">Score</span>

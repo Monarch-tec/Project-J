@@ -15,6 +15,7 @@ import { QuestionNav } from './components/QuestionNav';
 import { QuestionExplorer } from './components/QuestionExplorer';
 import { ExamMode } from './components/ExamMode';
 import { BookmarksReview } from './components/BookmarksReview';
+import { OfflineIndicator } from './components/OfflineIndicator';
 import { 
   ChevronLeft, 
   Sparkles, 
@@ -594,6 +595,9 @@ export const App: React.FC = () => {
           <span>13 Curriculum Chapters • 4 Question Types • Instant Feedback</span>
         </div>
       </footer>
+
+      {/* Offline Status Toast */}
+      <OfflineIndicator />
     </div>
   );
 };
