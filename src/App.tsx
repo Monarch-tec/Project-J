@@ -412,6 +412,10 @@ export const App: React.FC = () => {
             onOpenQuizBuilder={() => setMode('builder')}
             onStartMarathon={handleStartMarathon}
             onOpenStudyNotes={() => setMode('study-notes')}
+            onOpenFullNote={() => {
+              window.location.hash = '#notes/full-note';
+              setMode('study-notes');
+            }}
             progress={progress}
           />
         )}

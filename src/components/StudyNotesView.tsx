@@ -27,6 +27,9 @@ import {
   Sparkle
 } from 'lucide-react';
 import { CHAPTER_STUDY_NOTES, ChapterStudyGuide, StudyTopic } from '../data/studyNotes';
+import { TopicNotePageView } from './TopicNotePageView';
+import { FullNotePageView } from './FullNotePageView';
+import { buildFullNotePdfDocument, buildChapterPdfDocument } from '../utils/notesPdfGenerator';
 import { useSpeech } from '../hooks/useSpeech';
 import jsPDF from 'jspdf';
 
@@ -36,6 +39,7 @@ interface StudyNotesViewProps {
 
 const QUICK_TOPIC_PILLS = [
   'All',
+  'Major Advanced Concepts',
   'OOP Pillars',
   'JPMS Modularity',
   'Collections',
@@ -52,6 +56,7 @@ const QUICK_TOPIC_PILLS = [
 
 export const StudyNotesView: React.FC<StudyNotesViewProps> = ({ onStartChapterQuiz }) => {
   const [selectedChapterId, setSelectedChapterId] = useState<string>(CHAPTER_STUDY_NOTES[0].chapterId);
+  const [selectedTopicId, setSelectedTopicId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [activeQuickFilter, setActiveQuickFilter] = useState<string>('All');
   const [copiedCodeId, setCopiedCodeId] = useState<string | null>(null);
@@ -73,6 +78,41 @@ export const StudyNotesView: React.FC<StudyNotesViewProps> = ({ onStartChapterQu
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
+  // Hash route synchronization (#notes/:chapterId/:topicId)
+  useEffect(() => {
+    const handleHashChange = () => {
+      const hash = window.location.hash;
+      if (hash.startsWith('#notes/')) {
+        const parts = hash.replace('#notes/', '').split('/');
+        const chId = parts[0];
+        const tId = parts[1];
+        if (chId === 'full-note') {
+          setSelectedChapterId('full-note');
+          setSelectedTopicId(null);
+          return;
+        }
+        if (chId) {
+          const foundCh = CHAPTER_STUDY_NOTES.find(c => c.chapterId === chId);
+          if (foundCh) {
+            setSelectedChapterId(chId);
+            if (tId) {
+              const foundTopic = foundCh.coreConcepts.find(t => t.id === tId);
+              if (foundTopic) {
+                setSelectedTopicId(tId);
+              }
+            } else {
+              setSelectedTopicId(null);
+            }
+          }
+        }
+      }
+    };
+
+    handleHashChange();
+    window.addEventListener('hashchange', handleHashChange);
+    return () => window.removeEventListener('hashchange', handleHashChange);
+  }, []);
+
   // Real-time filtered chapters based on search query and quick topic filter
   const filteredChapters = useMemo(() => {
     let list = CHAPTER_STUDY_NOTES;
@@ -81,6 +121,7 @@ export const StudyNotesView: React.FC<StudyNotesViewProps> = ({ onStartChapterQu
     if (activeQuickFilter !== 'All') {
       const qf = activeQuickFilter.toLowerCase();
       list = list.filter(ch => {
+        if (qf === 'major advanced concepts' && ch.chapterNumber === 14) return true;
         if (qf === 'oop pillars' && ch.chapterNumber === 1) return true;
         if (qf === 'jpms modularity' && ch.chapterNumber === 2) return true;
         if (qf === 'collections' && ch.chapterNumber === 3) return true;
@@ -123,6 +164,7 @@ export const StudyNotesView: React.FC<StudyNotesViewProps> = ({ onStartChapterQu
 
   // Auto-adjust selected chapter if current selection is filtered out
   useEffect(() => {
+    if (selectedChapterId === 'full-note') return;
     if (filteredChapters.length > 0) {
       const currentStillVisible = filteredChapters.some(c => c.chapterId === selectedChapterId);
       if (!currentStillVisible) {
@@ -139,6 +181,23 @@ export const StudyNotesView: React.FC<StudyNotesViewProps> = ({ onStartChapterQu
       CHAPTER_STUDY_NOTES[0]
     );
   }, [filteredChapters, selectedChapterId]);
+
+  const selectedTopic = useMemo(() => {
+    if (!selectedTopicId) return null;
+    return currentChapter.coreConcepts.find(t => t.id === selectedTopicId) || null;
+  }, [selectedTopicId, currentChapter]);
+
+  const handleSelectTopic = (topicId: string) => {
+    setSelectedTopicId(topicId);
+    window.location.hash = `#notes/${selectedChapterId}/${topicId}`;
+    stopSpeaking();
+  };
+
+  const handleBackToChapter = () => {
+    setSelectedTopicId(null);
+    window.location.hash = `#notes/${selectedChapterId}`;
+    stopSpeaking();
+  };
 
   const handleCopyCode = (code: string, id: string) => {
     navigator.clipboard.writeText(code);
@@ -193,115 +252,13 @@ export const StudyNotesView: React.FC<StudyNotesViewProps> = ({ onStartChapterQu
   };
 
   const handleExportNotesPdf = () => {
-    const doc = new jsPDF({
-      orientation: 'portrait',
-      unit: 'mm',
-      format: 'a4',
-    });
-
-    const pageWidth = doc.internal.pageSize.getWidth();
-    const margin = 14;
-
-    doc.setFillColor(79, 70, 229);
-    doc.rect(0, 0, pageWidth, 28, 'F');
-    doc.setTextColor(255, 255, 255);
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(16);
-    doc.text('Advanced Java Comprehensive Study Guide & Notes', margin, 12);
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(10);
-    doc.text(`Chapter ${currentChapter.chapterNumber}: ${currentChapter.title}`, margin, 20);
-
-    let currentY = 38;
-
-    // Overview
-    doc.setTextColor(30, 41, 59);
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(12);
-    doc.text('Chapter Overview', margin, currentY);
-    currentY += 6;
-
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(9.5);
-    doc.setTextColor(71, 85, 105);
-    const splitOverview = doc.splitTextToSize(currentChapter.overview, pageWidth - (margin * 2));
-    doc.text(splitOverview, margin, currentY);
-    currentY += (splitOverview.length * 4.5) + 6;
-
-    // Quick Summary Checklist
-    if (currentChapter.quickSummaryChecklist && currentChapter.quickSummaryChecklist.length > 0) {
-      doc.setFillColor(238, 242, 255);
-      doc.roundedRect(margin, currentY, pageWidth - (margin * 2), 6, 1.5, 1.5, 'F');
-      doc.setTextColor(67, 56, 202);
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(9.5);
-      doc.text('Key Summary Points', margin + 3, currentY + 4.5);
-      currentY += 10;
-
-      doc.setFont('helvetica', 'normal');
-      doc.setFontSize(8.5);
-      doc.setTextColor(51, 65, 85);
-      currentChapter.quickSummaryChecklist.forEach(item => {
-        const itemText = `[x]  ${item}`;
-        const splitItem = doc.splitTextToSize(itemText, pageWidth - (margin * 2) - 4);
-        doc.text(splitItem, margin + 2, currentY);
-        currentY += (splitItem.length * 4) + 1;
-      });
-      currentY += 4;
+    if (selectedChapterId === 'full-note') {
+      const doc = buildFullNotePdfDocument();
+      doc.save('java_programming_full_note_1_111.pdf');
+    } else {
+      const doc = buildChapterPdfDocument(currentChapter);
+      doc.save(`java_chapter_${currentChapter.chapterNumber}_study_notes.pdf`);
     }
-
-    // Core concepts
-    currentChapter.coreConcepts.forEach((concept) => {
-      if (currentY > 255) {
-        doc.addPage();
-        currentY = 20;
-      }
-
-      doc.setFillColor(241, 245, 249);
-      doc.roundedRect(margin, currentY, pageWidth - (margin * 2), 7, 2, 2, 'F');
-      doc.setTextColor(15, 23, 42);
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(10);
-      doc.text(concept.title, margin + 3, currentY + 5);
-      currentY += 11;
-
-      doc.setFont('helvetica', 'normal');
-      doc.setFontSize(9);
-      doc.setTextColor(51, 65, 85);
-      const splitSumm = doc.splitTextToSize(concept.summary, pageWidth - (margin * 2));
-      doc.text(splitSumm, margin, currentY);
-      currentY += (splitSumm.length * 4) + 4;
-
-      concept.keyPoints.forEach(kp => {
-        if (currentY > 265) {
-          doc.addPage();
-          currentY = 20;
-        }
-        const bulletText = `•  ${kp}`;
-        const splitBullet = doc.splitTextToSize(bulletText, pageWidth - (margin * 2) - 4);
-        doc.text(splitBullet, margin + 2, currentY);
-        currentY += (splitBullet.length * 4) + 1;
-      });
-
-      if (concept.codeExample) {
-        if (currentY > 235) {
-          doc.addPage();
-          currentY = 20;
-        }
-        doc.setFillColor(15, 23, 42);
-        const splitCode = doc.splitTextToSize(concept.codeExample, pageWidth - (margin * 2) - 8);
-        const codeHeight = (splitCode.length * 3.5) + 6;
-        doc.roundedRect(margin, currentY, pageWidth - (margin * 2), codeHeight, 2, 2, 'F');
-        doc.setTextColor(253, 230, 138);
-        doc.setFont('courier', 'normal');
-        doc.setFontSize(7.5);
-        doc.text(splitCode, margin + 4, currentY + 4.5);
-        currentY += codeHeight + 5;
-      }
-      currentY += 4;
-    });
-
-    doc.save(`java_chapter_${currentChapter.chapterNumber}_study_notes.pdf`);
   };
 
   return (
@@ -325,19 +282,20 @@ export const StudyNotesView: React.FC<StudyNotesViewProps> = ({ onStartChapterQu
           <button
             id="download-notes-pdf-btn"
             onClick={handleExportNotesPdf}
-            className="flex items-center space-x-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs px-4 py-3 rounded-2xl shadow-md transition-all cursor-pointer"
+            className="flex items-center space-x-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs px-4 py-3 rounded-2xl shadow-md transition-all cursor-pointer"
+            title="Download PDF directly to device"
           >
             <Download className="w-4 h-4" />
-            <span>Download Chapter PDF</span>
+            <span>{selectedChapterId === 'full-note' ? 'Download Full Note (.pdf)' : 'Download Chapter (.pdf)'}</span>
           </button>
 
           <button
             id="start-chapter-quiz-from-notes-btn"
-            onClick={() => onStartChapterQuiz(currentChapter.chapterId)}
+            onClick={() => onStartChapterQuiz(selectedChapterId === 'full-note' ? CHAPTER_STUDY_NOTES[0].chapterId : currentChapter.chapterId)}
             className="flex items-center space-x-2 bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs px-4 py-3 rounded-2xl shadow-md transition-all cursor-pointer"
           >
             <Sparkles className="w-4 h-4" />
-            <span>Practice Chapter {currentChapter.chapterNumber} Quiz</span>
+            <span>{selectedChapterId === 'full-note' ? 'Practice Comprehensive Exam Quiz' : `Practice Chapter ${currentChapter.chapterNumber} Quiz`}</span>
           </button>
         </div>
       </div>
@@ -445,6 +403,45 @@ export const StudyNotesView: React.FC<StudyNotesViewProps> = ({ onStartChapterQu
 
             {/* Sidebar Chapter Buttons List */}
             <div className="space-y-1.5 max-h-[640px] overflow-y-auto pr-1">
+              {/* Pinned Card: Separate Full Note [1-111] */}
+              <div className="mb-2">
+                <button
+                  id="select-full-note-sidebar-btn"
+                  onClick={() => {
+                    setSelectedChapterId('full-note');
+                    setSelectedTopicId(null);
+                    window.location.hash = '#notes/full-note';
+                    stopSpeaking();
+                  }}
+                  className={`w-full text-left p-3.5 rounded-2xl transition-all border flex items-center justify-between group cursor-pointer ${
+                    selectedChapterId === 'full-note'
+                      ? 'bg-amber-400 text-slate-950 shadow-md font-bold border-amber-300 ring-2 ring-amber-400/40'
+                      : 'bg-gradient-to-r from-amber-50 to-orange-50/60 hover:bg-amber-100/90 text-slate-900 border-amber-300 shadow-xs'
+                  }`}
+                >
+                  <div className="space-y-1 pr-2">
+                    <div className="flex items-center space-x-1.5">
+                      <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${
+                        selectedChapterId === 'full-note' ? 'bg-slate-950 text-amber-300' : 'bg-amber-200 text-amber-900'
+                      }`}>
+                        ⭐ SEPARATE NOTE
+                      </span>
+                      <span className="text-xs font-black truncate">
+                        Full Note [1–111]
+                      </span>
+                    </div>
+                    <p className={`text-[11px] truncate max-w-[220px] font-medium ${
+                      selectedChapterId === 'full-note' ? 'text-slate-950' : 'text-slate-600'
+                    }`}>
+                      Complete 111-Section Master Syllabus
+                    </p>
+                  </div>
+                  <ChevronRight className={`w-4 h-4 shrink-0 transition-transform ${
+                    selectedChapterId === 'full-note' ? 'text-slate-950 translate-x-0.5' : 'text-amber-700 group-hover:translate-x-0.5'
+                  }`} />
+                </button>
+              </div>
+
               {filteredChapters.length === 0 ? (
                 <div className="p-6 text-center space-y-3 bg-slate-50 rounded-2xl border border-dashed border-slate-200">
                   <BookOpen className="w-8 h-8 text-slate-300 mx-auto" />
@@ -463,40 +460,79 @@ export const StudyNotesView: React.FC<StudyNotesViewProps> = ({ onStartChapterQu
                 filteredChapters.map((ch) => {
                   const isSelected = ch.chapterId === currentChapter.chapterId;
                   return (
-                    <button
-                      key={ch.chapterId}
-                      id={`chapter-select-btn-${ch.chapterNumber}`}
-                      onClick={() => {
-                        setSelectedChapterId(ch.chapterId);
-                        stopSpeaking();
-                      }}
-                      className={`w-full text-left p-3.5 rounded-2xl transition-all flex items-center justify-between group cursor-pointer ${
-                        isSelected
-                          ? 'bg-indigo-600 text-white shadow-md font-bold'
-                          : 'bg-slate-50 hover:bg-indigo-50/80 text-slate-700 hover:text-indigo-950'
-                      }`}
-                    >
-                      <div className="space-y-1 pr-2">
-                        <div className="flex items-center space-x-2">
-                          <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${
-                            isSelected ? 'bg-indigo-500/80 text-white' : 'bg-indigo-100 text-indigo-800'
+                    <div key={ch.chapterId} className="space-y-1">
+                      <button
+                        id={`chapter-select-btn-${ch.chapterNumber}`}
+                        onClick={() => {
+                          setSelectedChapterId(ch.chapterId);
+                          setSelectedTopicId(null);
+                          window.location.hash = `#notes/${ch.chapterId}`;
+                          stopSpeaking();
+                        }}
+                        className={`w-full text-left p-3.5 rounded-2xl transition-all flex items-center justify-between group cursor-pointer ${
+                          isSelected
+                            ? 'bg-indigo-600 text-white shadow-md font-bold'
+                            : 'bg-slate-50 hover:bg-indigo-50/80 text-slate-700 hover:text-indigo-950'
+                        }`}
+                      >
+                        <div className="space-y-1 pr-2">
+                          <div className="flex items-center space-x-2">
+                            <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${
+                              isSelected ? 'bg-indigo-500/80 text-white' : 'bg-indigo-100 text-indigo-800'
+                            }`}>
+                              Ch {ch.chapterNumber}
+                            </span>
+                            <span className="text-xs font-bold truncate max-w-[180px]">
+                              {searchQuery ? highlightMatch(ch.title.split('—')[1] || ch.title, searchQuery) : (ch.title.split('—')[1] || ch.title)}
+                            </span>
+                          </div>
+                          <p className={`text-[11px] truncate max-w-[220px] ${
+                            isSelected ? 'text-indigo-100' : 'text-slate-400'
                           }`}>
-                            Ch {ch.chapterNumber}
-                          </span>
-                          <span className="text-xs font-bold truncate max-w-[180px]">
-                            {searchQuery ? highlightMatch(ch.title.split('—')[1] || ch.title, searchQuery) : (ch.title.split('—')[1] || ch.title)}
-                          </span>
+                            {searchQuery ? highlightMatch(ch.subtitle, searchQuery) : ch.subtitle}
+                          </p>
                         </div>
-                        <p className={`text-[11px] truncate max-w-[220px] ${
-                          isSelected ? 'text-indigo-100' : 'text-slate-400'
-                        }`}>
-                          {searchQuery ? highlightMatch(ch.subtitle, searchQuery) : ch.subtitle}
-                        </p>
-                      </div>
-                      <ChevronRight className={`w-4 h-4 shrink-0 transition-transform ${
-                        isSelected ? 'text-white translate-x-0.5' : 'text-slate-400 group-hover:text-indigo-600'
-                      }`} />
-                    </button>
+                        <ChevronRight className={`w-4 h-4 shrink-0 transition-transform ${
+                          isSelected ? 'text-white translate-x-0.5' : 'text-slate-400 group-hover:text-indigo-600'
+                        }`} />
+                      </button>
+
+                      {/* Accordion List of Chapter Topics */}
+                      {isSelected && (
+                        <div className="pt-1 pb-2 pl-3 pr-1 space-y-1 bg-indigo-50/50 rounded-2xl border border-indigo-100/80">
+                          <div className="px-2 py-1 text-[10px] font-black uppercase tracking-wider text-indigo-800 flex items-center justify-between">
+                            <span>Topics ({ch.coreConcepts.length})</span>
+                            <span className="text-[9px] font-bold text-indigo-500">Click to open page</span>
+                          </div>
+                          <div className="max-h-56 overflow-y-auto space-y-1 pr-1">
+                            {ch.coreConcepts.map((topic, tIdx) => {
+                              const isTopicActive = selectedTopicId === topic.id;
+                              return (
+                                <button
+                                  key={topic.id}
+                                  id={`sidebar-topic-link-${topic.id}`}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleSelectTopic(topic.id);
+                                  }}
+                                  className={`w-full text-left px-2.5 py-1.5 rounded-xl text-xs transition-all flex items-center justify-between cursor-pointer ${
+                                    isTopicActive
+                                      ? 'bg-indigo-600 text-white font-black shadow-sm'
+                                      : 'text-slate-700 hover:bg-white hover:text-indigo-900 font-medium'
+                                  }`}
+                                  title={topic.title}
+                                >
+                                  <span className="truncate pr-1">
+                                    {tIdx + 1}. {topic.title.replace(/^\d+\.\s*/, '')}
+                                  </span>
+                                  <ChevronRight className={`w-3 h-3 shrink-0 ${isTopicActive ? 'text-white' : 'text-slate-400'}`} />
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
+                    </div>
                   );
                 })
               )}
@@ -506,7 +542,19 @@ export const StudyNotesView: React.FC<StudyNotesViewProps> = ({ onStartChapterQu
 
         {/* Right Study Notes Canvas / Note Viewer */}
         <div className="lg:col-span-8 space-y-6">
-          <div className="bg-white rounded-3xl sm:rounded-[2.5rem] p-6 sm:p-8 border border-indigo-100 shadow-md space-y-6">
+          {selectedChapterId === 'full-note' ? (
+            <FullNotePageView />
+          ) : selectedTopic ? (
+            <TopicNotePageView
+              chapter={currentChapter}
+              topic={selectedTopic}
+              allTopics={currentChapter.coreConcepts}
+              onBackToChapter={handleBackToChapter}
+              onSelectTopic={handleSelectTopic}
+              onStartQuiz={onStartChapterQuiz}
+            />
+          ) : (
+            <div className="bg-white rounded-3xl sm:rounded-[2.5rem] p-6 sm:p-8 border border-indigo-100 shadow-md space-y-6">
             {/* Note Viewer Header & Controls */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-slate-100">
               <div className="space-y-1">
@@ -721,6 +769,44 @@ export const StudyNotesView: React.FC<StudyNotesViewProps> = ({ onStartChapterQu
                             </div>
                           </div>
                         )}
+
+                        {/* Bottom Topic Page Action Bar */}
+                        <div className="pt-3 border-t border-slate-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                          <div className="flex flex-wrap items-center gap-1.5">
+                            {concept.deepDiveNotes && concept.deepDiveNotes.length > 0 && (
+                              <span className="text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-lg bg-indigo-100/90 text-indigo-900 flex items-center space-x-1">
+                                <BookOpen className="w-3 h-3 text-indigo-600" />
+                                <span>Deep Dive</span>
+                              </span>
+                            )}
+                            {concept.architectureDiagram && (
+                              <span className="text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-lg bg-slate-200 text-slate-800 flex items-center space-x-1">
+                                <FileText className="w-3 h-3 text-slate-600" />
+                                <span>Architecture Diagram</span>
+                              </span>
+                            )}
+                            {concept.interviewQnA && concept.interviewQnA.length > 0 && (
+                              <span className="text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-lg bg-amber-100 text-amber-900 flex items-center space-x-1">
+                                <GraduationCap className="w-3 h-3 text-amber-700" />
+                                <span>{concept.interviewQnA.length} Interview Q&As</span>
+                              </span>
+                            )}
+                            {concept.complexity && (
+                              <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-slate-100 text-slate-600">
+                                {concept.complexity}
+                              </span>
+                            )}
+                          </div>
+
+                          <button
+                            id={`open-topic-page-btn-${concept.id}`}
+                            onClick={() => handleSelectTopic(concept.id)}
+                            className="flex items-center justify-center space-x-2 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-black text-xs shadow-sm transition-all cursor-pointer hover:shadow hover:-translate-y-0.5"
+                          >
+                            <span>Open Full Topic Page</span>
+                            <ArrowRight className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
                       </div>
                     );
                   })}
@@ -793,6 +879,7 @@ export const StudyNotesView: React.FC<StudyNotesViewProps> = ({ onStartChapterQu
               </button>
             </div>
           </div>
+          )}
         </div>
       </div>
     </div>

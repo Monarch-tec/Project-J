@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
 import { 
   CheckCircle2, 
   XCircle, 
@@ -8,19 +9,19 @@ import {
   ChevronLeft, 
   Copy, 
   Check, 
-  RotateCcw,
-  Terminal,
-  Zap,
-  HelpCircle,
-  Eye,
-  CheckSquare,
-  Square,
-  Sparkles,
-  AlertCircle,
-  Volume2,
-  VolumeX,
-  Play,
-  Square as StopSquare
+  RotateCcw, 
+  Terminal, 
+  Zap, 
+  HelpCircle, 
+  Eye, 
+  CheckSquare, 
+  Square, 
+  Sparkles, 
+  AlertCircle, 
+  Volume2, 
+  VolumeX, 
+  Play, 
+  Square as StopSquare 
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { Question, UserAnswerState } from '../types';
@@ -312,12 +313,22 @@ export const QuizCard: React.FC<QuizCardProps> = ({
             const optionLetters = ['A', 'B', 'C', 'D'];
 
             return (
-              <button
+              <motion.button
                 key={idx}
                 id={`question-${question.id}-option-${idx}`}
                 disabled={isAnswered}
                 onClick={() => onSelectAnswer(idx)}
-                className={`group relative p-6 rounded-3xl text-left transition-all shadow-sm flex flex-col justify-between ${cardStyles}`}
+                whileHover={!isAnswered ? { scale: 1.015, y: -2 } : {}}
+                whileTap={!isAnswered ? { scale: 0.985 } : {}}
+                animate={
+                  isAnswered && isThisSelected && !isThisCorrect
+                    ? { x: [0, -6, 6, -4, 4, 0] }
+                    : isAnswered && isThisCorrect
+                    ? { scale: [1, 1.02, 1] }
+                    : {}
+                }
+                transition={{ duration: 0.3 }}
+                className={`group relative p-6 rounded-3xl text-left shadow-sm flex flex-col justify-between cursor-pointer ${cardStyles}`}
               >
                 <span className={`absolute -top-4 -left-4 w-10 h-10 rounded-2xl flex items-center justify-center font-black text-base transition-all ${letterBadgeStyles}`}>
                   {optionLetters[idx]}
@@ -339,7 +350,7 @@ export const QuizCard: React.FC<QuizCardProps> = ({
                     <span>Incorrect choice</span>
                   </div>
                 )}
-              </button>
+              </motion.button>
             );
           })}
         </div>
@@ -410,13 +421,15 @@ export const QuizCard: React.FC<QuizCardProps> = ({
 
           {!isAnswered && (
             <div className="pt-3 flex justify-end">
-              <button
+              <motion.button
                 onClick={handleSubmitMultiAnswer}
                 disabled={localMultiSelections.length === 0}
-                className="px-8 py-3.5 rounded-2xl bg-amber-400 hover:bg-amber-300 text-amber-950 font-black text-sm uppercase tracking-wider shadow-[0px_4px_0px_0px_#b45309] active:translate-y-1 active:shadow-none transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                whileHover={localMultiSelections.length > 0 ? { scale: 1.03, y: -2 } : {}}
+                whileTap={localMultiSelections.length > 0 ? { scale: 0.97 } : {}}
+                className="px-8 py-3.5 rounded-2xl bg-amber-400 hover:bg-amber-300 text-amber-950 font-black text-sm uppercase tracking-wider shadow-[0px_4px_0px_0px_#b45309] transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
               >
                 Submit Multiple Selection ({localMultiSelections.length} Selected)
-              </button>
+              </motion.button>
             </div>
           )}
         </div>
@@ -446,11 +459,21 @@ export const QuizCard: React.FC<QuizCardProps> = ({
             }
 
             return (
-              <button
+              <motion.button
                 key={tf.val}
                 disabled={isAnswered}
                 onClick={() => onSelectAnswer(tf.val)}
-                className={`p-8 rounded-3xl text-center font-black text-2xl uppercase tracking-wider transition-all shadow-md ${tfStyle}`}
+                whileHover={!isAnswered ? { scale: 1.03, y: -3 } : {}}
+                whileTap={!isAnswered ? { scale: 0.97 } : {}}
+                animate={
+                  isAnswered && isThisSelected && !isThisCorrect
+                    ? { x: [0, -6, 6, -4, 4, 0] }
+                    : isAnswered && isThisCorrect
+                    ? { scale: [1, 1.02, 1] }
+                    : {}
+                }
+                transition={{ duration: 0.3 }}
+                className={`p-8 rounded-3xl text-center font-black text-2xl uppercase tracking-wider shadow-md cursor-pointer ${tfStyle}`}
               >
                 <div className="flex flex-col items-center justify-center space-y-2">
                   <span>{tf.label}</span>
@@ -467,7 +490,7 @@ export const QuizCard: React.FC<QuizCardProps> = ({
                     </span>
                   )}
                 </div>
-              </button>
+              </motion.button>
             );
           })}
         </div>
@@ -541,9 +564,12 @@ export const QuizCard: React.FC<QuizCardProps> = ({
 
       {/* Immediate Explanation Box (Revealed when answered) */}
       {isAnswered && (
-        <div 
+        <motion.div 
           id={`explanation-box-${question.id}`}
-          className={`p-6 sm:p-7 rounded-3xl border-2 mt-8 transition-all duration-300 animate-in fade-in slide-in-from-top-2 ${
+          initial={{ opacity: 0, y: 15, scale: 0.98 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          transition={{ duration: 0.3 }}
+          className={`p-6 sm:p-7 rounded-3xl border-2 mt-8 shadow-sm ${
             isCorrect 
               ? 'bg-emerald-50 border-emerald-400/80 text-emerald-950' 
               : 'bg-indigo-50/80 border-indigo-200 text-slate-800'
@@ -553,18 +579,28 @@ export const QuizCard: React.FC<QuizCardProps> = ({
             <div className="flex items-center space-x-2.5">
               {isCorrect ? (
                 <>
-                  <div className="w-8 h-8 rounded-2xl bg-emerald-500 text-white flex items-center justify-center shadow-sm">
+                  <motion.div 
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    transition={{ type: "spring", stiffness: 400, damping: 15 }}
+                    className="w-8 h-8 rounded-2xl bg-emerald-500 text-white flex items-center justify-center shadow-sm"
+                  >
                     <CheckCircle2 className="w-5 h-5" />
-                  </div>
+                  </motion.div>
                   <span className="font-black text-emerald-800 text-base tracking-wide uppercase">
                     CORRECT! Excellent Analysis
                   </span>
                 </>
               ) : (
                 <>
-                  <div className="w-8 h-8 rounded-2xl bg-rose-500 text-white flex items-center justify-center shadow-sm">
+                  <motion.div 
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    transition={{ type: "spring", stiffness: 400, damping: 15 }}
+                    className="w-8 h-8 rounded-2xl bg-rose-500 text-white flex items-center justify-center shadow-sm"
+                  >
                     <XCircle className="w-5 h-5" />
-                  </div>
+                  </motion.div>
                   <span className="font-black text-rose-800 text-base tracking-wide uppercase">
                     {question.type === 'multiple-choice' 
                       ? `INCORRECT — CORRECT ANSWER IS OPTION ${['A', 'B', 'C', 'D'][question.correctAnswer || 0]}`
@@ -575,14 +611,16 @@ export const QuizCard: React.FC<QuizCardProps> = ({
             </div>
 
             {/* Try Again / Reset button */}
-            <button
+            <motion.button
               onClick={onResetQuestionAnswer}
-              className="text-xs font-bold text-indigo-700 hover:text-indigo-900 flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-white hover:bg-indigo-100 transition-colors border border-indigo-200 shadow-sm"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              className="text-xs font-bold text-indigo-700 hover:text-indigo-900 flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-white hover:bg-indigo-100 transition-colors border border-indigo-200 shadow-sm cursor-pointer"
               title="Reset answer and try again"
             >
               <RotateCcw className="w-3.5 h-3.5" />
               <span>Try Again</span>
-            </button>
+            </motion.button>
           </div>
 
           <div className="text-sm sm:text-base leading-relaxed">
@@ -608,43 +646,47 @@ export const QuizCard: React.FC<QuizCardProps> = ({
               ))}
             </div>
           )}
-        </div>
+        </motion.div>
       )}
 
       {/* Navigation Controls Footer */}
       <footer className="mt-10 pt-6 border-t border-slate-100 flex flex-col sm:flex-row justify-between items-center gap-4">
-        <button
+        <motion.button
           id="btn-prev-question"
           disabled={!hasPrev}
           onClick={onPrevQuestion}
+          whileHover={hasPrev ? { scale: 1.03, x: -2 } : {}}
+          whileTap={hasPrev ? { scale: 0.97 } : {}}
           className={`flex items-center space-x-2 px-6 py-3.5 rounded-2xl text-sm font-bold transition-all ${
             hasPrev
-              ? 'bg-slate-100 hover:bg-slate-200 text-slate-700 shadow-sm'
+              ? 'bg-slate-100 hover:bg-slate-200 text-slate-700 shadow-sm cursor-pointer'
               : 'bg-slate-50 text-slate-300 cursor-not-allowed'
           }`}
         >
           <ChevronLeft className="w-4 h-4" />
           <span>Previous Question</span>
-        </button>
+        </motion.button>
 
         {/* Status prompt */}
         <div className="text-xs text-slate-400 font-bold uppercase tracking-wider">
           {!isAnswered ? 'Select your answer to reveal analysis' : 'Response validated'}
         </div>
 
-        <button
+        <motion.button
           id="btn-next-question"
           disabled={!hasNext}
           onClick={onNextQuestion}
+          whileHover={hasNext ? { scale: 1.03, x: 2 } : {}}
+          whileTap={hasNext ? { scale: 0.97 } : {}}
           className={`flex items-center space-x-2 px-8 sm:px-12 py-4 rounded-2xl text-base uppercase font-black tracking-wider transition-all ${
             hasNext
-              ? 'bg-amber-400 hover:bg-amber-300 text-amber-950 shadow-[0px_6px_0px_0px_#b45309] active:translate-y-1 active:shadow-none'
+              ? 'bg-amber-400 hover:bg-amber-300 text-amber-950 shadow-[0px_6px_0px_0px_#b45309] cursor-pointer'
               : 'bg-slate-100 text-slate-300 cursor-not-allowed'
           }`}
         >
           <span>Next Question</span>
           <ChevronRight className="w-5 h-5" />
-        </button>
+        </motion.button>
       </footer>
     </div>
   );

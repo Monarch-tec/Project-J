@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { motion } from 'motion/react';
 import { 
   Filter, 
   CheckCircle2, 
@@ -49,62 +50,45 @@ export const QuestionNav: React.FC<QuestionNavProps> = ({
         </div>
 
         {onShuffle && (
-          <button
+          <motion.button
             onClick={onShuffle}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
             title="Shuffle questions order"
-            className="flex items-center space-x-1.5 text-xs font-bold text-indigo-700 hover:text-indigo-900 px-3 py-1.5 rounded-xl bg-indigo-50 hover:bg-indigo-100 border border-indigo-100 transition-colors shadow-sm"
+            className="flex items-center space-x-1.5 text-xs font-bold text-indigo-700 hover:text-indigo-900 px-3 py-1.5 rounded-xl bg-indigo-50 hover:bg-indigo-100 border border-indigo-100 transition-colors shadow-sm cursor-pointer"
           >
             <Shuffle className="w-3.5 h-3.5" />
             <span className="hidden sm:inline">Shuffle</span>
-          </button>
+          </motion.button>
         )}
       </div>
 
       {/* Filter Chips */}
       <div className="flex items-center gap-2 py-3.5 border-b border-slate-100 overflow-x-auto text-xs font-bold scrollbar-none">
-        <button
-          onClick={() => setFilter('all')}
-          className={`px-3 py-1.5 rounded-xl transition-all whitespace-nowrap ${
-            filter === 'all' 
-              ? 'bg-amber-400 text-amber-950 font-black shadow-sm' 
-              : 'bg-indigo-50 text-indigo-700 hover:bg-indigo-100'
-          }`}
-        >
-          All ({questions.length})
-        </button>
-
-        <button
-          onClick={() => setFilter('unanswered')}
-          className={`px-3 py-1.5 rounded-xl transition-all whitespace-nowrap ${
-            filter === 'unanswered' 
-              ? 'bg-amber-400 text-amber-950 font-black shadow-sm' 
-              : 'bg-indigo-50 text-indigo-700 hover:bg-indigo-100'
-          }`}
-        >
-          Unanswered
-        </button>
-
-        <button
-          onClick={() => setFilter('incorrect')}
-          className={`px-3 py-1.5 rounded-xl transition-all whitespace-nowrap ${
-            filter === 'incorrect' 
-              ? 'bg-amber-400 text-amber-950 font-black shadow-sm' 
-              : 'bg-indigo-50 text-indigo-700 hover:bg-indigo-100'
-          }`}
-        >
-          Incorrect
-        </button>
-
-        <button
-          onClick={() => setFilter('bookmarked')}
-          className={`px-3 py-1.5 rounded-xl transition-all whitespace-nowrap ${
-            filter === 'bookmarked' 
-              ? 'bg-amber-400 text-amber-950 font-black shadow-sm' 
-              : 'bg-indigo-50 text-indigo-700 hover:bg-indigo-100'
-          }`}
-        >
-          Saved
-        </button>
+        {(['all', 'unanswered', 'incorrect', 'bookmarked'] as const).map((mode) => {
+          const labels: Record<string, string> = {
+            all: `All (${questions.length})`,
+            unanswered: 'Unanswered',
+            incorrect: 'Incorrect',
+            bookmarked: 'Saved'
+          };
+          const isActive = filter === mode;
+          return (
+            <motion.button
+              key={mode}
+              onClick={() => setFilter(mode)}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              className={`px-3 py-1.5 rounded-xl transition-all whitespace-nowrap cursor-pointer ${
+                isActive 
+                  ? 'bg-amber-400 text-amber-950 font-black shadow-sm' 
+                  : 'bg-indigo-50 text-indigo-700 hover:bg-indigo-100'
+              }`}
+            >
+              {labels[mode]}
+            </motion.button>
+          );
+        })}
       </div>
 
       {/* Number Grid */}
@@ -129,17 +113,19 @@ export const QuestionNav: React.FC<QuestionNavProps> = ({
           }
 
           return (
-            <button
+            <motion.button
               key={q.id}
               id={`nav-grid-btn-${q.id}`}
               onClick={() => onSelectIndex(originalIndex)}
-              className={`h-9 rounded-xl border text-xs font-bold flex items-center justify-center relative transition-all ${cellClass}`}
+              whileHover={{ scale: 1.12, y: -2 }}
+              whileTap={{ scale: 0.92 }}
+              className={`h-9 rounded-xl border text-xs font-bold flex items-center justify-center relative transition-colors cursor-pointer ${cellClass}`}
             >
               <span>{originalIndex + 1}</span>
               {isBookmarked && (
                 <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-amber-400 ring-1 ring-white" />
               )}
-            </button>
+            </motion.button>
           );
         })}
       </div>

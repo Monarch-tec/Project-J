@@ -1,4 +1,5 @@
 import React from 'react';
+import { motion } from 'motion/react';
 import { 
   Cpu, 
   Layers, 
@@ -23,7 +24,8 @@ import {
   HelpCircle,
   Terminal,
   FileCode2,
-  FileText
+  FileText,
+  Download
 } from 'lucide-react';
 import { CHAPTERS } from '../data/chapters';
 import { ALL_QUESTIONS } from '../data/questions';
@@ -36,6 +38,7 @@ interface CategoryGridProps {
   onOpenQuizBuilder: () => void;
   onStartMarathon: () => void;
   onOpenStudyNotes?: () => void;
+  onOpenFullNote?: () => void;
   progress: QuizProgress;
 }
 
@@ -92,6 +95,7 @@ export const CategoryGrid: React.FC<CategoryGridProps> = ({
   onOpenQuizBuilder,
   onStartMarathon,
   onOpenStudyNotes,
+  onOpenFullNote,
   progress
 }) => {
   const totalAnswered = Object.keys(progress.answeredQuestions).length;
@@ -101,16 +105,43 @@ export const CategoryGrid: React.FC<CategoryGridProps> = ({
   return (
     <div className="space-y-10 animate-in fade-in duration-300">
       {/* Hero Curriculum Banner */}
-      <div 
+      <motion.div 
         id="curriculum-hero-card"
+        initial={{ opacity: 0, y: 15 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3 }}
         className="relative overflow-hidden rounded-3xl sm:rounded-[2.5rem] bg-white border border-indigo-100 p-8 sm:p-12 shadow-2xl text-slate-800"
       >
-        <div className="absolute top-0 right-0 -mt-10 -mr-10 w-72 h-72 bg-amber-200/50 rounded-full blur-3xl pointer-events-none" />
+        {/* Dynamic floating ambient lights */}
+        <motion.div 
+          animate={{
+            scale: [1, 1.15, 1],
+            x: [0, 15, 0],
+            y: [0, -10, 0]
+          }}
+          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute top-0 right-0 -mt-10 -mr-10 w-72 h-72 bg-amber-200/50 rounded-full blur-3xl pointer-events-none" 
+        />
+        <motion.div 
+          animate={{
+            scale: [1, 1.2, 1],
+            x: [0, -15, 0],
+            y: [0, 12, 0]
+          }}
+          transition={{ duration: 9, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+          className="absolute bottom-0 left-1/4 -mb-16 w-64 h-64 bg-indigo-200/40 rounded-full blur-3xl pointer-events-none" 
+        />
+
         <div className="relative z-10 max-w-3xl">
-          <div className="inline-flex items-center space-x-2 px-4 py-1.5 rounded-full bg-indigo-100 text-indigo-700 text-xs font-bold uppercase tracking-wider mb-4">
+          <motion.div 
+            initial={{ opacity: 0, x: -10 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.1 }}
+            className="inline-flex items-center space-x-2 px-4 py-1.5 rounded-full bg-indigo-100 text-indigo-700 text-xs font-bold uppercase tracking-wider mb-4"
+          >
             <Zap className="w-4 h-4 text-amber-500 fill-amber-500" />
             <span>Complete 13-Chapter Advanced Java Curriculum</span>
-          </div>
+          </motion.div>
           <h1 className="text-2xl sm:text-4xl font-black text-slate-900 tracking-tight leading-tight">
             Advanced Programming Concepts in Java
           </h1>
@@ -119,37 +150,56 @@ export const CategoryGrid: React.FC<CategoryGridProps> = ({
           </p>
 
           <div className="mt-8 flex flex-wrap items-center gap-4">
-            <button
+            <motion.button
               id="btn-open-quiz-builder"
               onClick={onOpenQuizBuilder}
-              className="flex items-center space-x-2.5 px-8 py-4 rounded-2xl bg-amber-400 hover:bg-amber-300 text-amber-950 font-black text-base uppercase tracking-wider shadow-[0px_5px_0px_0px_#b45309] active:translate-y-1 active:shadow-none transition-all"
+              whileHover={{ scale: 1.03, y: -2 }}
+              whileTap={{ scale: 0.97 }}
+              className="flex items-center space-x-2.5 px-8 py-4 rounded-2xl bg-amber-400 hover:bg-amber-300 text-amber-950 font-black text-base uppercase tracking-wider shadow-[0px_5px_0px_0px_#b45309] transition-all cursor-pointer"
             >
               <SlidersHorizontal className="w-4 h-4 text-amber-950" />
               <span>Configure Custom Quiz / Exam</span>
-            </button>
+            </motion.button>
 
-            <button
+            <motion.button
               id="btn-start-marathon"
               onClick={onStartMarathon}
-              className="flex items-center space-x-2 px-6 py-4 rounded-2xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-black text-sm border border-indigo-200 transition-all shadow-sm"
+              whileHover={{ scale: 1.03, y: -2 }}
+              whileTap={{ scale: 0.97 }}
+              className="flex items-center space-x-2 px-6 py-4 rounded-2xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-black text-sm border border-indigo-200 transition-all shadow-sm cursor-pointer"
             >
               <Play className="w-4 h-4 fill-indigo-700" />
               <span>Practice All Questions ({ALL_QUESTIONS.length})</span>
-            </button>
+            </motion.button>
+
+            {onOpenFullNote && (
+              <motion.button
+                id="btn-open-full-note-hero"
+                onClick={onOpenFullNote}
+                whileHover={{ scale: 1.03, y: -2 }}
+                whileTap={{ scale: 0.97 }}
+                className="flex items-center space-x-2 px-6 py-4 rounded-2xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-sm transition-all shadow-md cursor-pointer"
+              >
+                <FileText className="w-4 h-4 text-slate-950" />
+                <span>Full Note [1–111]</span>
+              </motion.button>
+            )}
 
             {onOpenStudyNotes && (
-              <button
+              <motion.button
                 id="btn-open-study-notes"
                 onClick={onOpenStudyNotes}
-                className="flex items-center space-x-2 px-6 py-4 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-black text-sm transition-all shadow-sm"
+                whileHover={{ scale: 1.03, y: -2 }}
+                whileTap={{ scale: 0.97 }}
+                className="flex items-center space-x-2 px-6 py-4 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-black text-sm transition-all shadow-sm cursor-pointer"
               >
                 <FileText className="w-4 h-4 text-amber-300" />
-                <span>Full Topic Study Notes</span>
-              </button>
+                <span>Chapter Notes</span>
+              </motion.button>
             )}
           </div>
         </div>
-      </div>
+      </motion.div>
 
       {/* Chapter Performance Recharts Visualizer */}
       <ChapterPerformanceChart progress={progress} />
@@ -172,18 +222,23 @@ export const CategoryGrid: React.FC<CategoryGridProps> = ({
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {QUESTION_FORMATS.map((fmt) => {
+          {QUESTION_FORMATS.map((fmt, idx) => {
             const count = ALL_QUESTIONS.filter(q => q.type === fmt.id).length;
             return (
-              <div
+              <motion.div
                 key={fmt.id}
                 id={`card-type-${fmt.id}`}
                 onClick={() => onSelectType && onSelectType(fmt.id)}
+                initial={{ opacity: 0, y: 15 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: idx * 0.05 }}
+                whileHover={{ y: -6, scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
                 className={`group bg-white hover:bg-slate-50 border-4 border-slate-100 ${fmt.borderHover} rounded-3xl p-5 sm:p-6 transition-all duration-200 cursor-pointer shadow-xl flex flex-col justify-between text-slate-800`}
               >
                 <div>
                   <div className="flex items-center justify-between gap-2 mb-3">
-                    <div className="w-10 h-10 rounded-2xl bg-slate-100 flex items-center justify-center">
+                    <div className="w-10 h-10 rounded-2xl bg-slate-100 flex items-center justify-center group-hover:scale-110 transition-transform">
                       {fmt.icon}
                     </div>
                     <span className={`text-[11px] font-bold px-2.5 py-1 rounded-full ${fmt.badgeBg}`}>
@@ -201,9 +256,9 @@ export const CategoryGrid: React.FC<CategoryGridProps> = ({
 
                 <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs font-black text-indigo-600 group-hover:text-indigo-800">
                   <span>{count} Questions Available</span>
-                  <ArrowRight className="w-3.5 h-3.5 transform group-hover:translate-x-1 transition-transform" />
+                  <ArrowRight className="w-3.5 h-3.5 transform group-hover:translate-x-1.5 transition-transform" />
                 </div>
-              </div>
+              </motion.div>
             );
           })}
         </div>
@@ -220,27 +275,40 @@ export const CategoryGrid: React.FC<CategoryGridProps> = ({
           </p>
         </div>
         <div className="flex items-center space-x-3">
-          <button
+          <motion.button
             onClick={onOpenQuizBuilder}
-            className="text-xs font-bold text-slate-900 bg-amber-400 hover:bg-amber-300 px-4 py-2 rounded-2xl shadow-md transition-all flex items-center space-x-1.5"
+            whileHover={{ scale: 1.04 }}
+            whileTap={{ scale: 0.96 }}
+            className="text-xs font-bold text-slate-900 bg-amber-400 hover:bg-amber-300 px-4 py-2 rounded-2xl shadow-md transition-all flex items-center space-x-1.5 cursor-pointer"
           >
             <SlidersHorizontal className="w-3.5 h-3.5" />
             <span>Customize Question Types & Chapters</span>
-          </button>
+          </motion.button>
         </div>
       </div>
 
-      {/* 13 Chapters Grid */}
+      {/* 13 Chapters Grid with Dynamic Progress Trackers */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-        {CHAPTERS.map((chapter) => {
+        {CHAPTERS.map((chapter, i) => {
           const chapterQuestions = ALL_QUESTIONS.filter(q => q.chapter === chapter.id);
           const totalQ = chapterQuestions.length || chapter.totalQuestions;
 
+          // Compute answered count for this specific chapter
+          const answeredInChapter = chapterQuestions.filter(q => progress.answeredQuestions[q.id]);
+          const answeredCount = answeredInChapter.length;
+          const correctInChapter = answeredInChapter.filter(q => progress.answeredQuestions[q.id]?.isCorrect).length;
+          const chapterProgressPercent = totalQ > 0 ? Math.round((answeredCount / totalQ) * 100) : 0;
+
           return (
-            <div
+            <motion.div
               key={chapter.id}
               id={`chapter-card-${chapter.id}`}
               onClick={() => onSelectChapter(chapter.id as ChapterId)}
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: Math.min(i * 0.04, 0.4) }}
+              whileHover={{ y: -6, scale: 1.015 }}
+              whileTap={{ scale: 0.985 }}
               className="group bg-white hover:bg-slate-50 border-4 border-slate-100 hover:border-indigo-400 rounded-3xl p-6 transition-all duration-200 cursor-pointer shadow-xl flex flex-col justify-between text-slate-800"
             >
               <div>
@@ -280,12 +348,36 @@ export const CategoryGrid: React.FC<CategoryGridProps> = ({
                 )}
               </div>
 
-              {/* Card Footer */}
-              <div className="mt-5 pt-3 border-t border-slate-100 flex items-center justify-between text-xs font-black text-indigo-700 group-hover:text-indigo-900">
-                <span>Start Chapter {chapter.number}</span>
-                <ArrowRight className="w-3.5 h-3.5 transform group-hover:translate-x-1 transition-transform" />
+              {/* Dynamic Chapter Progress Bar */}
+              <div className="mt-5 pt-3 border-t border-slate-100 space-y-2">
+                <div className="flex items-center justify-between text-[11px] font-bold text-slate-500">
+                  <span>{answeredCount > 0 ? `${answeredCount}/${totalQ} Answered` : 'Not Started'}</span>
+                  {answeredCount > 0 && (
+                    <span className="text-emerald-600 font-black">
+                      {Math.round((correctInChapter / answeredCount) * 100)}% Acc
+                    </span>
+                  )}
+                </div>
+                <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
+                  <motion.div 
+                    className={`h-full rounded-full transition-all ${
+                      chapterProgressPercent === 100 
+                        ? 'bg-emerald-500' 
+                        : 'bg-gradient-to-r from-indigo-500 to-amber-400'
+                    }`}
+                    initial={{ width: 0 }}
+                    animate={{ width: `${chapterProgressPercent}%` }}
+                    transition={{ duration: 0.6, ease: "easeOut" }}
+                  />
+                </div>
+
+                {/* Card Action Link */}
+                <div className="pt-1 flex items-center justify-between text-xs font-black text-indigo-700 group-hover:text-indigo-900">
+                  <span>Start Chapter {chapter.number}</span>
+                  <ArrowRight className="w-3.5 h-3.5 transform group-hover:translate-x-1.5 transition-transform" />
+                </div>
               </div>
-            </div>
+            </motion.div>
           );
         })}
       </div>

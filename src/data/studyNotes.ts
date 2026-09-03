@@ -1,26 +1,8 @@
-export interface StudyTopic {
-  id: string;
-  title: string;
-  summary: string;
-  keyPoints: string[];
-  codeExample?: string;
-  pitfalls?: string[];
-  complexity?: string;
-  deepDiveNotes?: string[];
-}
+export type { TopicInterviewQA, StudyTopic, ChapterStudyGuide } from '../types';
+import { ChapterStudyGuide } from '../types';
+import { CHAPTER_14_STUDY_GUIDE } from './advancedConceptsNotes';
 
-export interface ChapterStudyGuide {
-  chapterId: string;
-  chapterNumber: number;
-  title: string;
-  subtitle: string;
-  overview: string;
-  coreConcepts: StudyTopic[];
-  examTips: string[];
-  quickSummaryChecklist: string[];
-}
-
-export const CHAPTER_STUDY_NOTES: ChapterStudyGuide[] = [
+const BASE_CHAPTER_STUDY_NOTES: ChapterStudyGuide[] = [
   {
     chapterId: 'chapter-1',
     chapterNumber: 1,
@@ -671,3 +653,543 @@ try (Connection conn = dataSource.getConnection();
     ]
   }
 ];
+
+export const CHAPTER_STUDY_NOTES: ChapterStudyGuide[] = [
+  ...BASE_CHAPTER_STUDY_NOTES,
+  CHAPTER_14_STUDY_GUIDE
+];
+
+const _LEGACY_CHAPTER_14: ChapterStudyGuide = {
+  chapterId: 'chapter-14',
+    chapterNumber: 14,
+    title: 'Chapter 14 — Major Advanced Programming Concepts',
+    subtitle: 'OOP Pillars, Collections, Concurrency, I/O, JDBC, Sockets, Patterns & Memory Management',
+    overview: 'A master reference manual and study guide defining every major advanced programming concept in Java with formal definitions, principles, syntax, pitfalls, and runtime execution models.',
+    quickSummaryChecklist: [
+      'OOP Pillars: Encapsulation (data hiding), Inheritance (reuse), Polymorphism (many forms), Abstraction (contract definition).',
+      'Inheritance Types: Single (A->B), Multilevel (A->B->C), Hierarchical (A->B, A->C). No multiple class inheritance.',
+      'Polymorphism: Compile-time (Method Overloading) vs Runtime (Method Overriding & Dynamic Method Dispatch).',
+      'Abstract classes can store state and constructors; Interfaces define behavioral contracts with default & static methods.',
+      'Exception keywords: try, catch, finally (always runs), throw (explicit instance), throws (method signature).',
+      'Collections: ArrayList (O(1) access), LinkedList (O(1) node insert), HashSet (O(1) unique), TreeSet (O(log n) sorted), HashMap (O(1) KV), TreeMap (O(log n) sorted KV).',
+      'File I/O & Streams: BufferedReader reduces native disk syscalls; Serialization writes object graphs with transient & serialVersionUID.',
+      'Multithreading: Runnable decouples task from Thread execution; synchronization guards intrinsic monitors; wait/notify coordinates threads.',
+      'Concurrency Utilities: ExecutorService thread pools, Future async handles, ReentrantLock, ConcurrentHashMap.',
+      'Functional Interfaces: Predicate<T> (test), Consumer<T> (accept), Supplier<T> (get), Function<T,R> (apply).',
+      'Stream API: filter (predicate), map (transform), reduce (accumulate), collect (gather), forEach (consume).',
+      'JDBC: DriverManager, Connection, PreparedStatement (prevents SQL injection), ResultSet.',
+      'Networking: ServerSocket listens on a port; Socket connects endpoints for TCP/IP streams.',
+      'GUI: Swing runs on EDT; JavaFX uses Stage -> Scene -> Node graph.',
+      'Design Patterns: Singleton (one instance), Factory (creation abstraction), Observer (publish-subscribe), MVC (separation of concerns).',
+      'Memory Management: Stack (thread-private frames & locals) vs Heap (shared objects & GC), GC roots determine object eligibility.'
+    ],
+    coreConcepts: [
+      {
+        id: 'c14-oop-pillars',
+        title: '1. Object-Oriented Programming (OOP) & The 4 Pillars',
+        summary: 'The foundational architectural paradigm of Java that structures software into modular, data-encapsulating, and polymorphic objects.',
+        keyPoints: [
+          'Encapsulation: The practice of keeping fields private and providing public getters and setters to protect internal state and validate data.',
+          'Inheritance: Mechanism allowing a subclass to derive properties and methods from a superclass using the "extends" keyword, promoting code reuse.',
+          'Polymorphism: The capability of a method or object to take on multiple forms—resolved at compile time (overloading) or runtime (overriding).',
+          'Abstraction: The technique of hiding internal implementation mechanics and exposing only high-level operations via abstract classes and interfaces.'
+        ],
+        codeExample: `// Encapsulation: Private state guarded by public methods
+public class BankAccount {
+    private double balance; // Data hiding
+    
+    public double getBalance() { return balance; }
+    
+    public void deposit(double amount) {
+        if (amount <= 0) throw new IllegalArgumentException("Amount must be positive");
+        this.balance += amount;
+    }
+}`,
+        pitfalls: [
+          'Leaving fields public or package-private compromises encapsulation and data integrity.',
+          'Overusing inheritance over composition ("favor composition over inheritance" is a key best practice).'
+        ]
+      },
+      {
+        id: 'c14-inheritance-types',
+        title: '2. Inheritance Types & Method Overriding',
+        summary: 'Detailed taxonomy of inheritance models supported in Java and the rules governing method overriding.',
+        keyPoints: [
+          'Single Inheritance: A subclass inherits from exactly one direct parent class (e.g., class B extends A).',
+          'Multilevel Inheritance: An inheritance chain where a child class inherits from a parent that is itself a child (e.g., class C extends B, and class B extends A).',
+          'Hierarchical Inheritance: Multiple child classes inherit directly from a single parent class (e.g., class Dog extends Animal and class Cat extends Animal).',
+          'Multiple Inheritance (Classes): NOT permitted for classes in Java to prevent ambiguity and the Diamond Problem.',
+          'Method Overriding: A subclass provides its own specialized implementation of a method declared in its superclass with identical name, parameter types, and compatible return type.'
+        ],
+        codeExample: `// Single & Hierarchical Inheritance
+class Animal {
+    void eat() { System.out.println("Eating..."); }
+}
+
+class Dog extends Animal { // Single inheritance (Dog IS-A Animal)
+    void bark() { System.out.println("Barking..."); }
+}
+
+class Cat extends Animal { // Hierarchical inheritance (Cat & Dog both extend Animal)
+    void meow() { System.out.println("Meowing..."); }
+}
+
+class Puppy extends Dog { // Multilevel inheritance (Puppy -> Dog -> Animal)
+    void weep() { System.out.println("Weeping..."); }
+}`,
+        pitfalls: [
+          'Attempting multiple class inheritance (class C extends A, B) produces a compile-time syntax error.',
+          'Reducing access visibility during method overriding (e.g., overriding a public method with protected) is forbidden.'
+        ]
+      },
+      {
+        id: 'c14-polymorphism',
+        title: '3. Polymorphism: Compile-Time vs Runtime (Dynamic Method Dispatch)',
+        summary: 'Dual facets of polymorphism in Java: static resolution by parameter signature vs dynamic dispatch based on actual runtime object type.',
+        keyPoints: [
+          'Compile-time Polymorphism (Method Overloading): Multiple methods in the same class share the same name but differ in argument count, types, or order. Resolved at compile time (static binding).',
+          'Runtime Polymorphism (Method Overriding): An overridden instance method is resolved at runtime based on the actual object in heap memory, regardless of the reference type.',
+          'Dynamic Method Dispatch: The JVM inspects the runtime object\'s vtable at execution time to invoke the overridden subclass method.',
+          'Static methods, private methods, and final methods cannot be overridden and therefore do not exhibit runtime polymorphism.'
+        ],
+        codeExample: `// Simple Example of an Advanced Concept: Runtime Polymorphism
+class Animal {
+    void sound() {
+        System.out.println("Animal makes a sound");
+    }
+}
+
+class Dog extends Animal {
+    @Override
+    void sound() {
+        System.out.println("Dog barks");
+    }
+}
+
+public class Main {
+    public static void main(String[] args) {
+        Animal a = new Dog(); // Parent reference to child object
+        a.sound(); // Output: Dog barks (Dynamic Method Dispatch)
+    }
+}`,
+        pitfalls: [
+          'Variables (fields) in Java do NOT exhibit polymorphism; field access is bound at compile time based on the reference type, not the object type.'
+        ]
+      },
+      {
+        id: 'c14-abstract-interfaces',
+        title: '4. Abstract Classes and Interfaces',
+        summary: 'Designing contracts and incomplete templates: abstract classes vs interface implementations and multiple inheritance.',
+        keyPoints: [
+          'Abstract Classes: Declared with the "abstract" keyword. Cannot be instantiated with "new". May contain abstract methods (no body), concrete methods, constructors, and instance variables.',
+          'Interfaces: Defined with the "interface" keyword. Classes fulfill interface contracts using "implements".',
+          'Multiple Inheritance via Interfaces: A class can implement any number of interfaces (implements A, B, C), achieving multiple inheritance of behavior safely.',
+          'Interface Evolution: Java 8+ supports default methods (with body) and static methods; Java 9+ supports private helper methods inside interfaces.'
+        ],
+        codeExample: `interface Swimmable {
+    void swim(); // Abstract method
+    default void dive() { System.out.println("Diving deep..."); } // Default method
+}
+
+interface Flyable {
+    void fly();
+}
+
+// Multiple inheritance through interfaces
+public class Duck implements Swimmable, Flyable {
+    @Override
+    public void swim() { System.out.println("Duck swimming"); }
+
+    @Override
+    public void fly() { System.out.println("Duck flying"); }
+}`,
+        pitfalls: [
+          'If two implemented interfaces provide conflicting default methods with the same signature, the implementing class MUST explicitly override and resolve the conflict.'
+        ]
+      },
+      {
+        id: 'c14-exceptions',
+        title: '5. Exception Handling: try, catch, finally, throw, throws & Custom Exceptions',
+        summary: 'The structured exception handling system in Java for robust error detection, propagation, and resource safety.',
+        keyPoints: [
+          'try: Encloses statements that may throw exceptional conditions.',
+          'catch: Captures and handles specific exceptions thrown by the try block.',
+          'finally: Executes unconditionally after try/catch, whether an exception occurred, was caught, or bypassed by return.',
+          'throw: Imperatively throws an instantiated exception object (e.g., throw new InvalidAgeException(...)).',
+          'throws: Declares in a method signature that the method may propagate checked exceptions to its caller.',
+          'Custom Exceptions: Created by extending Exception (checked) or RuntimeException (unchecked).'
+        ],
+        codeExample: `// Custom Checked Exception
+public class InsufficientFundsException extends Exception {
+    public InsufficientFundsException(String message) {
+        super(message);
+    }
+}
+
+public class AccountService {
+    public void withdraw(double balance, double amount) throws InsufficientFundsException {
+        if (amount > balance) {
+            throw new InsufficientFundsException("Cannot withdraw " + amount + ", balance is " + balance);
+        }
+    }
+    
+    public void process() {
+        try {
+            withdraw(100.0, 150.0);
+        } catch (InsufficientFundsException e) {
+            System.err.println("Handled: " + e.getMessage());
+        } finally {
+            System.out.println("Transaction audit log completed."); // Always executes
+        }
+    }
+}`,
+        pitfalls: [
+          'Swallowing exceptions with an empty catch block hides root causes and makes debugging impossible.',
+          'The finally block will only fail to run if System.exit(0) is called or the host JVM crashes abruptly.'
+        ]
+      },
+      {
+        id: 'c14-collections',
+        title: '6. Java Collections Framework & Iterators',
+        summary: 'Standardized data structure implementations for lists, sets, maps, and universal cursor iteration.',
+        keyPoints: [
+          'ArrayList: Dynamic resizable array offering fast O(1) random index access and amortized O(1) insertion.',
+          'LinkedList: Doubly-linked list with O(1) pointer-based insertion/deletion at both ends; implements List and Deque.',
+          'HashSet: Unordered set of unique elements backed by HashMap; average O(1) operations for add, contains, remove.',
+          'TreeSet: Sorted set backed by Red-Black Tree; guarantees elements in sorted order with O(log n) operations.',
+          'HashMap: Key-value associative array allowing one null key; average O(1) lookup and insertion.',
+          'TreeMap: Sorted key-value map backed by Red-Black Tree; keys ordered by natural order or custom Comparator; O(log n).',
+          'Iterators: Universal cursor interface (hasNext(), next(), remove()) supporting fail-fast traversal across all collections.'
+        ],
+        codeExample: `List<String> list = new ArrayList<>(List.of("Alpha", "Beta", "Gamma"));
+
+// Safe removal using Iterator to avoid ConcurrentModificationException
+Iterator<String> it = list.iterator();
+while (it.hasNext()) {
+    String item = it.next();
+    if (item.startsWith("B")) {
+        it.remove(); // Safely removes "Beta"
+    }
+}`,
+        pitfalls: [
+          'Mutating a collection directly via list.remove(...) during an enhanced for-each loop throws ConcurrentModificationException.'
+        ]
+      },
+      {
+        id: 'c14-generics',
+        title: '7. Generics & Type Safety',
+        summary: 'Parameterized types providing strong compile-time type safety and eliminating runtime ClassCastExceptions.',
+        keyPoints: [
+          'Generic Classes: Classes with formal type parameters (e.g., class Box<T> { private T val; }).',
+          'Generic Methods: Methods declaring their own type parameters (e.g., public static <E> void print(E[] array)).',
+          'Type Safety: The compiler validates that only objects of the declared type parameter are placed into containers.',
+          'Type Erasure: The Java compiler replaces type parameters with Object or their upper bound in bytecode, maintaining binary compatibility with older Java versions.'
+        ],
+        codeExample: `public class GenericPair<K, V> {
+    private final K key;
+    private final V value;
+
+    public GenericPair(K key, V value) {
+        this.key = key;
+        this.value = value;
+    }
+
+    public K getKey() { return key; }
+    public V getValue() { return value; }
+    
+    // Generic Method
+    public static <T> void printElement(T element) {
+        System.out.println("Element: " + element);
+    }
+}`,
+        pitfalls: [
+          'Cannot instantiate generic arrays directly (new T[10]) or use primitive types as type arguments (use Integer, not int).'
+        ]
+      },
+      {
+        id: 'c14-file-io',
+        title: '8. File Handling, I/O Streams & Serialization',
+        summary: 'Mechanics of filesystem interaction, character vs buffered byte streams, and object persistence across JVM runs.',
+        keyPoints: [
+          'File: Abstract representation of file and directory pathnames.',
+          'FileReader & FileWriter: Character-stream readers/writers that read and write directly to/from disk files.',
+          'Buffered Streams (BufferedReader, BufferedWriter): In-memory buffer wrappers that batch disk reads/writes, reducing costly OS syscalls and enabling readLine().',
+          'Serialization: Converting an object graph into a byte stream via ObjectOutputStream (requires implements Serializable).',
+          'transient: Keyword marking fields to be excluded from serialization.',
+          'serialVersionUID: Unique 64-bit identifier used during deserialization to verify class version compatibility.'
+        ],
+        codeExample: `// Writing and Reading with Buffered Streams
+File file = new File("example.txt");
+
+try (BufferedWriter bw = new BufferedWriter(new FileWriter(file))) {
+    bw.write("Hello Java I/O");
+    bw.newLine();
+}
+
+try (BufferedReader br = new BufferedReader(new FileReader(file))) {
+    String line;
+    while ((line = br.readLine()) != null) {
+        System.out.println("Read: " + line);
+    }
+}`,
+        pitfalls: [
+          'Failing to close I/O streams leaks file descriptors; always use try-with-resources.',
+          'Attempting to serialize a class that does not implement java.io.Serializable throws NotSerializableException.'
+        ]
+      },
+      {
+        id: 'c14-multithreading',
+        title: '9. Multithreading & Thread Synchronization',
+        summary: 'Concurrent execution, thread creation paradigms, mutual exclusion with synchronized, and inter-thread coordination.',
+        keyPoints: [
+          'Creating Threads: Either by subclassing java.lang.Thread and overriding run(), or implementing the java.lang.Runnable interface.',
+          'Runnable vs Thread: Implementing Runnable is preferred because it separates the task from the thread and avoids consuming the single inheritance slot.',
+          'Synchronization: The synchronized keyword acquires an object\'s intrinsic monitor lock, guarding critical sections against race conditions.',
+          'Thread Communication: Methods wait(), notify(), and notifyAll() on Object instances allow threads to coordinate and signal state changes.',
+          'Concurrency: Multiple tasks executing in overlapping time intervals, utilizing multi-core processor parallelism.'
+        ],
+        codeExample: `class Counter {
+    private int count = 0;
+    
+    public synchronized void increment() { // Synchronized method locks 'this'
+        count++;
+    }
+    
+    public synchronized int getCount() { return count; }
+}
+
+Runnable task = () -> {
+    for (int i = 0; i < 1000; i++) counter.increment();
+};
+Thread t1 = new Thread(task);
+Thread t2 = new Thread(task);
+t1.start(); t2.start();`,
+        pitfalls: [
+          'Calling run() directly instead of start() executes the code synchronously on the current thread, NOT in a separate thread.'
+        ]
+      },
+      {
+        id: 'c14-lambdas-functional',
+        title: '10. Lambda Expressions & Functional Interfaces',
+        summary: 'Functional programming paradigm introduced in Java 8, enabling anonymous functions and the core java.util.function interfaces.',
+        keyPoints: [
+          'Lambda Expressions: Anonymous functions using the arrow operator (parameters) -> expression/block.',
+          'Functional Interface: An interface declaring exactly one abstract method (Single Abstract Method - SAM), optionally marked @FunctionalInterface.',
+          'Predicate<T>: boolean test(T t) — tests a condition.',
+          'Consumer<T>: void accept(T t) — consumes an input and performs a side-effect.',
+          'Supplier<T>: T get() — produces/supplies an instance without inputs.',
+          'Function<T, R>: R apply(T t) — transforms an input of type T into a result of type R.'
+        ],
+        codeExample: `import java.util.function.*;
+
+Predicate<Integer> isEven = n -> n % 2 == 0;
+Consumer<String> printer = s -> System.out.println("Output: " + s);
+Supplier<Double> randomVal = () -> Math.random();
+Function<String, Integer> lengthMapper = String::length;
+
+System.out.println(isEven.test(4)); // true
+printer.accept("Hello Lambdas");    // Output: Hello Lambdas`,
+        pitfalls: [
+          'Variables referenced inside lambda expressions must be final or effectively final (cannot be modified afterwards).'
+        ]
+      },
+      {
+        id: 'c14-stream-api',
+        title: '11. Stream API (filter, map, reduce, collect, forEach)',
+        summary: 'Declarative, composable pipelines for querying and transforming data collections with lazy evaluation.',
+        keyPoints: [
+          'Stream Pipeline: Composed of a Source (collection/array), 0+ Intermediate Operations (lazy), and 1 Terminal Operation (eager).',
+          'filter(): Intermediate operation that discards elements not matching a Predicate.',
+          'map(): Intermediate operation that transforms each element using a Function.',
+          'reduce(): Terminal operation that combines elements into a single accumulated value using a BinaryOperator.',
+          'collect(): Terminal operation that repackages elements into Collections, Strings, or Maps via Collectors.',
+          'forEach(): Terminal operation that passes each element to a Consumer.'
+        ],
+        codeExample: `List<String> names = List.of("Alice", "Bob", "Charlie", "David", "Amanda");
+
+List<String> result = names.stream()
+    .filter(name -> name.startsWith("A"))    // filter()
+    .map(String::toUpperCase)                // map()
+    .collect(Collectors.toList());           // collect()
+// Result: ["ALICE", "AMANDA"]
+
+int totalLength = names.stream()
+    .map(String::length)
+    .reduce(0, (sum, len) -> sum + len);     // reduce()`,
+        pitfalls: [
+          'Streams cannot be reused once a terminal operation has been called; attempting to do so throws IllegalStateException.'
+        ]
+      },
+      {
+        id: 'c14-jdbc',
+        title: '12. JDBC (Java Database Connectivity)',
+        summary: 'Connecting Java applications to relational databases and executing SQL queries securely.',
+        keyPoints: [
+          'Connecting to Databases: DriverManager.getConnection(url, username, password) establishes the physical session.',
+          'Connection: Represents the active connection and controls transaction commit/rollback behavior.',
+          'PreparedStatement: Precompiles SQL statements and parameterizes user inputs with "?" placeholders, preventing SQL Injection.',
+          'ResultSet: A cursor-based tabular representation of data returned from executing a SELECT query.',
+          'Resource Management: Connection, PreparedStatement, and ResultSet implement AutoCloseable and should always be opened within try-with-resources.'
+        ],
+        codeExample: `String sql = "SELECT name, balance FROM accounts WHERE user_id = ?";
+try (Connection conn = DriverManager.getConnection(dbUrl, user, pass);
+     PreparedStatement pstmt = conn.prepareStatement(sql)) {
+    
+    pstmt.setInt(1, 42); // Parameterized input
+    try (ResultSet rs = pstmt.executeQuery()) {
+        while (rs.next()) {
+            String name = rs.getString("name");
+            double balance = rs.getDouble("balance");
+            System.out.println(name + " has $" + balance);
+        }
+    }
+}`,
+        pitfalls: [
+          'Never concatenate user input directly into SQL strings using Statement; this creates catastrophic SQL Injection vulnerabilities.'
+        ]
+      },
+      {
+        id: 'c14-networking',
+        title: '13. Networking: Sockets, Client-Server & TCP/IP',
+        summary: 'Inter-process network communication over TCP/IP using Java standard socket APIs.',
+        keyPoints: [
+          'Sockets: Endpoints for two-way communication links between two programs running on the network.',
+          'Client-Server Architecture: Server listens on a well-known port, and clients connect dynamically.',
+          'ServerSocket: Used by server applications to bind to a port and listen for incoming connection requests via serverSocket.accept().',
+          'Socket: Used by client applications to connect to a host and port, providing InputStream and OutputStream for data exchange.',
+          'TCP/IP: Connection-oriented, reliable, ordered protocol guaranteeing packet delivery and integrity.'
+        ],
+        codeExample: `// Server:
+try (ServerSocket server = new ServerSocket(8080);
+     Socket client = server.accept(); // Blocks until client connects
+     BufferedReader in = new BufferedReader(new InputStreamReader(client.getInputStream()));
+     PrintWriter out = new PrintWriter(client.getOutputStream(), true)) {
+    String message = in.readLine();
+    out.println("Echo: " + message);
+}
+
+// Client:
+try (Socket socket = new Socket("localhost", 8080);
+     PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
+     BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()))) {
+    out.println("Hello Server");
+    System.out.println("Server responded: " + in.readLine());
+}`,
+        pitfalls: [
+          'ServerSocket.accept() is a blocking operation; production servers spawn worker threads or use NIO to handle concurrent client connections.'
+        ]
+      },
+      {
+        id: 'c14-gui',
+        title: '14. GUI Programming: Swing & JavaFX',
+        summary: 'Desktop graphical user interface frameworks in Java and event-driven architecture.',
+        keyPoints: [
+          'Swing: Classic lightweight toolkit running atop AWT; top-level containers include JFrame, JDialog; atomic widgets include JButton, JLabel.',
+          'Event Dispatch Thread (EDT): All Swing UI updates and rendering must strictly take place on this single thread using SwingUtilities.invokeLater().',
+          'JavaFX: Modern UI toolkit utilizing a Scene Graph architecture (Stage -> Scene -> Node hierarchy), CSS styling, and FXML layout files.',
+          'Event Handling: Listener/observer pattern where user actions trigger Event objects dispatched to ActionListeners or EventHandlers.'
+        ],
+        codeExample: `// Swing Event Handling on EDT
+SwingUtilities.invokeLater(() -> {
+    JFrame frame = new JFrame("Demo App");
+    JButton btn = new JButton("Click Me");
+    
+    // Event handling
+    btn.addActionListener(e -> JOptionPane.showMessageDialog(frame, "Button clicked!"));
+    
+    frame.setLayout(new FlowLayout());
+    frame.add(btn);
+    frame.setSize(300, 200);
+    frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+    frame.setVisible(true);
+});`,
+        pitfalls: [
+          'Performing long-running computations on the Event Dispatch Thread (EDT) freezes the entire UI; use SwingWorker instead.'
+        ]
+      },
+      {
+        id: 'c14-design-patterns',
+        title: '15. Design Patterns: Singleton, Factory, Observer & MVC',
+        summary: 'Battle-tested architectural and structural templates solving common software engineering challenges.',
+        keyPoints: [
+          'Singleton: Guarantees that a class has only one instance and provides a global access point (private constructor, static instance).',
+          'Factory: Defines an interface or method for creating an object, but lets subclasses or helper methods decide which class to instantiate.',
+          'Observer: Defines a one-to-many dependency where when a subject changes state, all registered observers are notified automatically.',
+          'MVC (Model-View-Controller): Separates data model (business logic), user presentation (view), and user interaction routing (controller).'
+        ],
+        codeExample: `// Thread-Safe Double-Checked Locking Singleton
+public class DatabasePool {
+    private static volatile DatabasePool instance;
+    
+    private DatabasePool() { /* private constructor */ }
+    
+    public static DatabasePool getInstance() {
+        if (instance == null) {
+            synchronized (DatabasePool.class) {
+                if (instance == null) {
+                    instance = new DatabasePool();
+                }
+            }
+        }
+        return instance;
+    }
+}`,
+        pitfalls: [
+          'Without the "volatile" keyword, double-checked locking in Singleton can fail due to instruction reordering in multithreaded environments.'
+        ]
+      },
+      {
+        id: 'c14-memory-management',
+        title: '16. Java Memory Management: Stack, Heap & Garbage Collection',
+        summary: 'Internal runtime memory allocation, stack execution frames, heap allocation, and garbage collection lifecycles.',
+        keyPoints: [
+          'Stack Memory: Private to each thread. Stores primitive local variables, object reference pointers, and method activation call frames. Cleared automatically upon method return.',
+          'Heap Memory: Shared across all threads. Stores all allocated object instances and class instance variables. Managed automatically by the Garbage Collector.',
+          'Garbage Collection (GC): Automated JVM background process identifying and reclaiming memory occupied by objects unreachable from GC roots (thread stacks, static references).',
+          'Object Lifecycle: 1. Created (via new) -> 2. In-Use (reachable) -> 3. Unreachable (eligible for GC) -> 4. Collected/Reclaimed.'
+        ],
+        codeExample: `public void process() {
+    int count = 10;                // Stored on the Stack (primitive)
+    String text = new String("Hi"); // 'text' reference on Stack, "Hi" Object on Heap
+} // When process() returns, stack frame pops; the "Hi" object becomes eligible for GC`,
+        pitfalls: [
+          'Memory Leaks in Java: Unintentional object retention occurs when dead objects remain referenced in static collections or unclosed listeners, preventing GC reclamation.'
+        ]
+      },
+      {
+        id: 'c14-concurrency-utilities',
+        title: '17. Multithreading and Concurrency Utilities',
+        summary: 'High-level synchronization primitives and concurrency frameworks in java.util.concurrent.',
+        keyPoints: [
+          'ExecutorService: Manages a pool of reusable worker threads and handles task scheduling (Executors.newFixedThreadPool(10)).',
+          'Future<V>: Represents the eventual result of an asynchronous computation, with methods isDone(), cancel(), and blocking get().',
+          'Locks (ReentrantLock): Explicit mutual exclusion locks providing advanced features like fairness policies, tryLock(), and interruptible locking.',
+          'Concurrent Collections: Thread-safe, lock-optimized collections such as ConcurrentHashMap, CopyOnWriteArrayList, and BlockingQueue.'
+        ],
+        codeExample: `ExecutorService executor = Executors.newFixedThreadPool(4);
+
+Callable<Integer> calculationTask = () -> {
+    Thread.sleep(100);
+    return 42;
+};
+
+Future<Integer> future = executor.submit(calculationTask);
+
+try {
+    Integer result = future.get(); // Waits for completion and returns 42
+    System.out.println("Result: " + result);
+} finally {
+    executor.shutdown();
+}`,
+        pitfalls: [
+          'Forgetting to call executor.shutdown() leaves worker threads alive, preventing the JVM from terminating cleanly.'
+        ]
+      }
+    ],
+    examTips: [
+      'Remember that dynamic method dispatch (runtime polymorphism) applies to instance methods, NOT to static methods or instance variables.',
+      'Always distinguish throw (statement inside code) from throws (clause in method signature).',
+      'The finally block executes even when a return statement is encountered in try or catch.',
+      'HashSet and HashMap offer O(1) average lookup, while TreeSet and TreeMap offer O(log n) sorted operations.'
+    ]
+  };

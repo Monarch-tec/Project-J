@@ -1,5 +1,6 @@
 import { Question, ChapterId, QuestionType } from '../../types';
 import { ALL_CURRICULUM_QUESTIONS } from './curriculumQuestions';
+import { advancedConceptsQuestions } from './advancedConceptsQuestions';
 import { concurrencyQuestions } from './concurrency';
 import { jvmInternalsQuestions } from './jvmInternals';
 import { genericsQuestions } from './genericsTypeSystem';
@@ -107,6 +108,7 @@ const legacyMappedQuestions: Question[] = [
 
 export const ALL_QUESTIONS: Question[] = [
   ...ALL_CURRICULUM_QUESTIONS,
+  ...advancedConceptsQuestions,
   ...legacyMappedQuestions
 ];
 

@@ -156,6 +156,32 @@ export const CHAPTERS: ChapterMeta[] = [
     totalQuestions: 25,
     color: 'emerald',
     topics: ['SOLID design principles', 'Creational, Structural & Behavioral patterns', 'UML class diagrams & associations', 'MVC vs MVVM architectural models', 'JUnit 5 assertions, lifecycle & Mockito']
+  },
+  {
+    id: 'chapter-14',
+    number: 14,
+    chapterNumber: 14,
+    title: 'Chapter 14 — Major Advanced Programming Concepts',
+    subtitle: 'OOP, Collections, Concurrency, I/O, JDBC, Sockets, Patterns & Memory',
+    description: 'Comprehensive mastery of Java core & advanced pillars: Encapsulation, Polymorphism, Inheritance types, Interfaces, Exceptions, Generics, File I/O, Serialization, Multithreading, Streams, JDBC, Sockets, GUI, Patterns, and JVM Memory Management.',
+    iconName: 'GraduationCap',
+    totalQuestions: 24,
+    color: 'amber',
+    topics: [
+      'OOP 4 Pillars & Inheritance Types',
+      'Runtime vs Compile-time Polymorphism',
+      'Abstract Classes & Interfaces',
+      'Exception Handling & Custom Exceptions',
+      'Collections Framework & Iterators',
+      'Generics & Type Safety',
+      'File Handling, Streams & Serialization',
+      'Multithreading, Concurrency & Utilities',
+      'Functional Interfaces & Stream API',
+      'JDBC, Sockets & Networking',
+      'GUI Programming (Swing & JavaFX)',
+      'Design Patterns (Singleton, Factory, Observer, MVC)',
+      'Java Memory Management (Stack, Heap, GC)'
+    ]
   }
 ];
 

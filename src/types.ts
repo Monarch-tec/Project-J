@@ -11,7 +11,8 @@ export type ChapterId =
   | 'chapter-10'
   | 'chapter-11'
   | 'chapter-12'
-  | 'chapter-13';
+  | 'chapter-13'
+  | 'chapter-14';
 
 export type QuestionType = 
   | 'multiple-choice' 
@@ -95,4 +96,37 @@ export interface CustomQuizConfig {
   questionCount: number;
   timeLimitMinutes: number; // 0 = untimed
   instantFeedback: boolean;
+}
+
+export interface TopicInterviewQA {
+  question: string;
+  answer: string;
+}
+
+export interface StudyTopic {
+  id: string;
+  title: string;
+  summary: string;
+  keyPoints: string[];
+  codeExample?: string;
+  codeExample2?: string;
+  codeExplanation?: string;
+  pitfalls?: string[];
+  complexity?: string;
+  deepDiveNotes?: string[];
+  architectureDiagram?: string;
+  realWorldScenario?: string;
+  interviewQnA?: TopicInterviewQA[];
+  tags?: string[];
+}
+
+export interface ChapterStudyGuide {
+  chapterId: string;
+  chapterNumber: number;
+  title: string;
+  subtitle: string;
+  overview: string;
+  coreConcepts: StudyTopic[];
+  examTips: string[];
+  quickSummaryChecklist: string[];
 }
